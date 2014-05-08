@@ -23,9 +23,15 @@ $(function() {
   });
 
   $(Todo).on('added', function (e, todo) {
-   $(".todo-form input[type=text]").val("");
+    $(".todo-form input[type=text]").val("");
   });
 
+  $("#trash").click(function () {
+    var list = $(".todo-list input:checked");
+    $(list).each(function () {
+      Todo.remove($(this).val());
+    });
+  });
 });
 
 /*
@@ -49,6 +55,19 @@ Todo.add = function (text) {
   }
 };
 
+Todo.remove = function (text) {
+  var removed;
+  var list = $.grep(Todo.list, function (val) {
+    if(val.text != text){
+      return val;
+    }else{
+      removed = val;
+    }
+  });
+  Todo.list = list;
+  $(Todo).trigger('removed', removed);
+};
+
 Todo.getTextList = function () {
   return $.map(Todo.list, function (todo) {
     return todo.text;
@@ -69,11 +88,20 @@ var ViewTodoList = function ($el) {
   $(Todo).on('added', function (e, todo) {
     self.add(todo);
   });
+
+  $(Todo).on('removed', function (e, todo) {
+    self.remove(todo);
+  });
 }
 
 ViewTodoList.prototype.add = function (todo) {
   var item = new ViewTodoListItem(todo);
   this.$el.append(item.$el);
+};
+
+ViewTodoList.prototype.remove = function (todo) {
+  var text = todo.text;
+  this.$el.find("input[value='"+todo.text+"']").closest("li").remove();
 };
 
 /*
@@ -83,7 +111,7 @@ ViewTodoList.prototype.add = function (todo) {
 var ViewTodoListItem = function (todo) {
   var self = this;
   this.todo = todo;
-  this.$el = $('<li class="list-group-item"><input type="checkbox">　' + todo.text + '</li>');
+  this.$el = $('<li class="list-group-item"><input type="checkbox" value="'+ todo.text +'">　' + todo.text + '</li>');
   this.$checkbox = this.$el.find("input[type='checkbox']");
 
   this.$checkbox.on('change', function () {
