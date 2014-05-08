@@ -1,37 +1,90 @@
 /*
  * js-mvc-form
- * Version: 1.1.0
+ * Version: 2.0.0
  */
 
 $(function() {
-  var $form = $(".todo-form");
-  var $input = $form.find("input[type=text]");
-  var $list = $(".todo-list");
-  var $usual = $(".usual-list");
+  new ViewTodoList($(".todo-list"));
 
-  function addList(text) {
-    var html = '<li class="list-group-item"><input type="checkbox">　' + text + '</li>';
-    var $li = $(html);
+  //test
+  Todo.add("item1");
+  Todo.add("item2");
 
-    $li.find("input[type='checkbox']").change(function() {
-      $(this).closest('li').toggleClass('list-group-item-info');
-    });
-    $list.append($li);
-  }
+  $(".usual-list li").on('click', function () {
+    Todo.add($(this).text()); 
+  });
 
-  $form.submit(function (e) {
+  $(".todo-form").on('submit', function (e) {
     e.preventDefault();
-    var text = $input.val();
-    if(text){
-      addList(text);
+    var $input = $(this).find("input[type=text]");
+    if($input.val()){
+      Todo.add($input.val());
     }
     $input.val("");
   });
+});
 
-  $usual.find('li').on('click', $usual, function (e) {
-    e.preventDefault();
-    var text = $(this).text();
-    addList(text);
+/*
+ * Model Todo
+ */
+var Todo = function (data) {
+  this.text = data.text;
+  this.complete = !!data.complete;
+};
+
+//自分自身のインスタンスを保存
+Todo.list = [];
+
+Todo.add = function (text) {
+  var todo = new Todo({text: text});
+  Todo.list.push(todo);
+  $(Todo).trigger('added', todo);
+};
+
+Todo.prototype.setComplete = function (complete) {
+  this.complete = !!complete; 
+  $(this).trigger('changeComplete', this);
+};
+
+/*
+ * ViewTodoList
+ */
+var ViewTodoList = function ($el) {
+  this.$el = $el;  
+  var self = this;
+  $(Todo).on('added', function (e, todo) {
+    self.add(todo);
+  });
+}
+
+ViewTodoList.prototype.add = function (todo) {
+  var item = new ViewTodoListItem(todo);
+  this.$el.append(item.$el);
+};
+
+/*
+ * ViewTodoListItem
+ */
+
+var ViewTodoListItem = function (todo) {
+  var self = this;
+  this.todo = todo;
+  this.$el = $('<li class="list-group-item"><input type="checkbox">　' + todo.text + '</li>');
+  this.$checkbox = this.$el.find("input[type='checkbox']");
+
+  this.$checkbox.on('change', function () {
+    self.todo.setComplete(self.$checkbox.is(":checked"));
   });
 
-});
+  $(this.todo).on('changeComplete', function () {
+    self.onchangeComplete();
+  });
+};
+
+ViewTodoListItem.prototype.onchangeComplete = function () {
+  if(this.todo.complete){
+    this.$el.addClass('list-group-item-info');
+  }else{
+    this.$el.removeClass('list-group-item-info');
+  }
+};
