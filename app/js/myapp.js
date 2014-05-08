@@ -51,7 +51,7 @@ Todo.add = function (text) {
 
   if($.inArray(text, list) == -1){
     Todo.list.push(todo);
-    $(Todo).trigger('added', todo);
+    $(Todo).triggerHandler('added', todo);
   }
 };
 
@@ -65,7 +65,7 @@ Todo.remove = function (text) {
     }
   });
   Todo.list = list;
-  $(Todo).trigger('removed', removed);
+  $(Todo).triggerHandler('removed', removed);
 };
 
 Todo.getTextList = function () {
@@ -76,7 +76,7 @@ Todo.getTextList = function () {
 
 Todo.prototype.setComplete = function (complete) {
   this.complete = !!complete; 
-  $(this).trigger('changeComplete', this);
+  $(this).triggerHandler('changeComplete', this);
 };
 
 /*
