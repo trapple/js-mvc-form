@@ -20,8 +20,12 @@ $(function() {
     if($input.val()){
       Todo.add($input.val());
     }
-    $input.val("");
   });
+
+  $(Todo).on('added', function (e, todo) {
+   $(".todo-form input[type=text]").val("");
+  });
+
 });
 
 /*
@@ -37,8 +41,18 @@ Todo.list = [];
 
 Todo.add = function (text) {
   var todo = new Todo({text: text});
-  Todo.list.push(todo);
-  $(Todo).trigger('added', todo);
+  var list = Todo.getTextList();
+
+  if($.inArray(text, list) == -1){
+    Todo.list.push(todo);
+    $(Todo).trigger('added', todo);
+  }
+};
+
+Todo.getTextList = function () {
+  return $.map(Todo.list, function (todo) {
+    return todo.text;
+  });
 };
 
 Todo.prototype.setComplete = function (complete) {
